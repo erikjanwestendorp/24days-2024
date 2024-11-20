@@ -32,6 +32,7 @@ jobs:
           echo "${GCP_SA_KEY}" | base64 --decode > gcloud-key.json
           gcloud auth activate-service-account --key-file=gcloud-key.json
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud auth configure-docker europe-west4-docker.pkg.dev
 
       - name: Configure Docker for Artifact Registry
         run: |
