@@ -1,0 +1,49 @@
+name: Build and Push to GCP Artifact Registry
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0'
+
+      - name: Build Application
+        run: |
+          dotnet restore
+          dotnet publish -c Release -o out
+
+      # Authenticate to GCP
+      - name: Authenticate to Google Cloud
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "${GCP_SA_KEY}" | base64 --decode > gcloud-key.json
+          gcloud auth activate-service-account --key-file=gcloud-key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.GCP_ARTIFACT_REGISTRY }}/my-dotnet-app:latest .
+
+      - name: Push Docker Image to Artifact Registry
+        run: |
+          docker push ${{ secrets.GCP_ARTIFACT_REGISTRY }}/my-dotnet-app:latest
+
+      - name: Cleanup GCP Credentials
+        run: |
+          rm -f gcloud-key.json
