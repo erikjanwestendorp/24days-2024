@@ -1,0 +1,33 @@
+name: Deploy to Google Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'The tag of the Docker image to deploy'
+        required: true
+        default: 'latest' 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+    - name: Configure Google Cloud project
+      run: |
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        gcloud config set run/region ${{ secrets.GCP_REGION }}
+
+    - name: Deploy to Google Cloud Run
+      run: |
+        IMAGE_NAME=gcr.io/${{ secrets.GCP_PROJECT_ID }}/your-app:${{ github.event.inputs.image_tag }}
+        gcloud run deploy your-service-name \
+          --image $IMAGE_NAME \
+          --platform managed \
+          --region ${{ secrets.GCP_REGION }} \
+          --allow-unauthenticated
