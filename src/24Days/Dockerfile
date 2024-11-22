@@ -1,4 +1,5 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+ENV APP_UID=1000
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -24,6 +25,8 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+USER root
 RUN mkdir -p /app/wwwroot/media && chown -R $APP_UID:$APP_UID /app/wwwroot/media
 
+USER $APP_UID
 ENTRYPOINT ["dotnet", "24Days.dll"]
