@@ -11,7 +11,7 @@ WORKDIR /src
 COPY ["24Days/24Days.csproj", "24Days/"]
 RUN dotnet restore "./24Days/24Days.csproj"
 
-COPY . . 
+COPY . .
 WORKDIR "/src/24Days"
 
 RUN dotnet build "./24Days.csproj" -c $BUILD_CONFIGURATION -o /app/build
@@ -23,4 +23,7 @@ RUN dotnet publish "./24Days.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+RUN mkdir -p /app/wwwroot/media && chown -R $APP_UID:$APP_UID /app/wwwroot/media
+
 ENTRYPOINT ["dotnet", "24Days.dll"]
