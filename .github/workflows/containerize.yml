@@ -1,9 +1,11 @@
 name: Build and Push to GCP Artifact Registry
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'The tag of the Docker image to deploy'
+        required: true
 
 jobs:
   build-and-push:
@@ -40,11 +42,11 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.GCP_ARTIFACT_REGISTRY }}/app:1.0.0 -f src/24Days/Dockerfile src
+          docker build -t ${{ secrets.GCP_ARTIFACT_REGISTRY }}/app:${{ github.event.inputs.image_tag }} -f src/24Days/Dockerfile src
 
       - name: Push Docker Image to Artifact Registry
         run: |
-          docker push ${{ secrets.GCP_ARTIFACT_REGISTRY }}/app:1.0.0
+          docker push ${{ secrets.GCP_ARTIFACT_REGISTRY }}/app:${{ github.event.inputs.image_tag }}
 
       - name: Cleanup GCP Credentials
         run: |
